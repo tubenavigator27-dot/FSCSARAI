@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Academy ERP</title>
+    <style>
+        /* --- 1. CSS VARIABLES & THEME --- */
+        :root {
+            --primary: #4F46E5; /* Indigo */
+            --bg: #F8FAFC;
+            --card-bg: #ffffff;
+            --text: #0F172A;
+            --text-sec: #64748B;
+            --success: #10B981;
+            --danger: #EF4444;
+            /* Role Colors */
+            --role-student: #4F46E5;
+            --role-parent: #0284c7;
+            --role-teacher: #D97706;
+            --role-office: #DC2626;
+            --gradient: linear-gradient(135deg, #4F46E5, #9333EA);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0F172A;
+            --card-bg: #1E293B;
+            --text: #F1F5F9;
+            --text-sec: #94A3B8;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 0; padding-bottom: 80px;
+            transition: background 0.3s, color 0.3s;
+            user-select: none;
+        }
+
+        /* --- 2. LOGIN SCREEN (Face Scan + Logo) --- */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text); text-align: center;
+        }
+        
+        .scan-container {
+            position: relative; width: 110px; height: 110px; margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: center;
+            background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .app-logo { width: 90px; height: 90px; object-fit: contain; }
+        
+        .scan-line {
+            width: 100%; height: 3px; background: var(--success);
+            position: absolute; top: 0; animation: scan 2s infinite;
+            box-shadow: 0 0 15px var(--success); opacity: 0.8;
+        }
+        @keyframes scan { 0% {top:0;} 50% {top:100%;} 100% {top:0;} }
+
+        .role-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            width: 85%; max-width: 320px; margin-top: 20px;
+        }
+        .role-card {
+            background: var(--card-bg); padding: 12px; border-radius: 12px;
+            border: 2px solid transparent; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center;
+        }
+        .role-card:active { transform: scale(0.95); }
+        .role-card.selected { border-color: var(--primary); background: #EEF2FF; }
+        .role-icon { font-size: 24px; margin-bottom: 5px; }
+
+        .login-box {
+            background: var(--card-bg); padding: 25px; border-radius: 20px;
+            width: 80%; max-width: 300px; margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* --- 3. HEADER --- */
+        header {
+            background: var(--gradient); color: white; padding: 15px 20px;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            position: relative; box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-left { display: flex; align-items: center; }
+        .mini-logo { width: 35px; height: 35px; background: white; border-radius: 8px; margin-right: 10px; object-fit: contain; padding: 2px; }
+        .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 12px; border-radius: 20px; font-size: 11px; }
+
+        /* --- 4. LAYOUT --- */
+        .page { display: none; padding: 20px; animation: fadeIn 0.4s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .grid-menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .card {
+            background: var(--card-bg); padding: 15px 5px; border-radius: 16px;
+            text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100px; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.1s;
+        }
+        .card:active { transform: scale(0.95); }
+        .card-icon { font-size: 26px; margin-bottom: 8px; }
+        .card b { font-size: 11px; font-weight: 600; color: var(--text-sec); }
+
+        /* --- 5. FORMS & INPUTS --- */
+        .form-section {
+            background: var(--card-bg); padding: 20px; border-radius: 15px; margin-bottom: 15px;
+            border: 1px solid #eee; border-left: 5px solid var(--primary);
+        }
+        .form-header { font-size: 14px; font-weight: bold; color: var(--text-sec); display: block; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        input, select, textarea {
+            width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px;
+            background: var(--bg); color: var(--text); box-sizing: border-box; margin-bottom: 12px; font-size: 14px; outline: none;
+        }
+        .btn-submit {
+            width: 100%; background: var(--gradient); color: white;
+            border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); transition: 0.2s;
+        }
+
+        /* --- 6. NEW FEATURES CSS --- */
+        
+        /* Syllabus Tracker */
+        .syllabus-bar { width: 100%; height: 8px; background: #eee; border-radius: 5px; margin-top: 5px; overflow: hidden; }
+        .syllabus-fill { height: 100%; background: var(--success); border-radius: 5px; }
+        
+        /* To-Do List */
+        .todo-item { display: flex; justify-content: space-between; padding: 10px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; align-items: center; }
+        .todo-del { color: var(--danger); font-weight: bold; cursor: pointer; }
+
+        /* Poll */
+        .poll-option { padding: 12px; background: var(--bg); border: 1px solid #ddd; border-radius: 10px; margin-bottom: 8px; cursor: pointer; position: relative; overflow: hidden; }
+        .poll-option:active { background: #e0e7ff; }
+        
+        /* Timer */
+        .timer-circle {
+            width: 150px; height: 150px; border-radius: 50%; border: 5px solid var(--primary);
+            display: flex; align-items: center; justify-content: center; margin: 20px auto;
+            font-size: 30px; font-weight: bold; color: var(--text);
+        }
+
+        /* Events */
+        .event-card { border-left: 4px solid var(--danger); background: var(--card-bg); padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+
+        /* --- 7. BOTTOM NAV --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; background: var(--card-bg);
+            display: flex; justify-content: space-around; padding: 12px 0;
+            border-top: 1px solid rgba(0,0,0,0.05); z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .nav-item { text-align: center; font-size: 10px; color: var(--text-sec); flex: 1; cursor: pointer; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+        .nav-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+
+        /* Dynamic Role Colors */
+        body[data-role="student"] { --primary: var(--role-student); }
+        body[data-role="parent"] { --primary: var(--role-parent); --gradient: linear-gradient(135deg, #0284c7, #0ea5e9); }
+        body[data-role="teacher"] { --primary: var(--role-teacher); --gradient: linear-gradient(135deg, #D97706, #F59E0B); }
+        body[data-role="office"] { --primary: var(--role-office); --gradient: linear-gradient(135deg, #DC2626, #EF4444); }
+        
+        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; }
+        .bg-green { background: var(--success); }
+    </style>
+</head>
+<body data-role="student">
+
+    <div id="login-screen">
+        <div class="scan-container">
+            <img src="https://img.sanishtech.com/u/0fc2d851655547af61a4786b55944bb0.png" class="app-logo">
+            <div class="scan-line"></div>
+        </div>
+        <h2>FOCUS Academy</h2>
+        <p style="font-size:13px; opacity:0.6;">Select Your Role to Login</p>
+        
+        <div class="role-grid">
+            <div class="role-card selected" onclick="selectRole('student', this)">
+                <span class="role-icon">👨‍🎓</span><b>Student</b>
+            </div>
+            <div class="role-card" onclick="selectRole('parent', this)">
+                <span class="role-icon">👨‍👩‍👧</span><b>Parent</b>
+            </div>
+            <div class="role-card" onclick="selectRole('teacher', this)">
+                <span class="role-icon">👨‍🏫</span><b>Teacher</b>
+            </div>
+            <div class="role-card" onclick="selectRole('office', this)">
+                <span class="role-icon">🏢</span><b>Office</b>
+            </div>
+        </div>
+
+        <div class="login-box">
+            <input type="text" id="username" placeholder="User ID / Name">
+            <input type="password" id="password" placeholder="Password (Use 1234)">
+            <button class="btn-submit" onclick="doLogin()">Login Securely</button>
+        </div>
+    </div>
+
+    <div id="app-container" style="display:none;">
+        
+        <header>
+            <div class="header-left">
+                <img src="https://img.sanishtech.com/u/0fc2d851655547af61a4786b55944bb0.png" class="mini-logo">
+                <div>
+                    <h1 style="margin:0; font-size:16px;">FOCUS Academy</h1>
+                    <p style="margin:0; font-size:10px; opacity:0.8;" id="role-display-text">Student Panel</p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="doLogout()">Logout ➔</button>
+        </header>
+
+        <div id="dash-student" class="page">
+            <div style="background:#EEF2FF; padding:15px; border-radius:12px; margin-bottom:20px; border-left:4px solid var(--primary); color:#333;">
+                <b>📢 Notice:</b> Scholarship Test on Feb 15th.
+            </div>
+
+            <div class="grid-menu">
+                <div class="card" onclick="nav('live')"><span class="card-icon">🔴</span><b>Live Class</b></div>
+                <div class="card" onclick="nav('timer')"><span class="card-icon">⏱️</span><b>Timer</b></div>
+                <div class="card" onclick="nav('syllabus')"><span class="card-icon">🛤️</span><b>Syllabus</b></div>
+                
+                <div class="card" onclick="nav('tasks')"><span class="card-icon">📝</span><b>To-Do</b></div>
+                <div class="card" onclick="nav('doubt')"><span class="card-icon">❓</span><b>Ask Doubt</b></div>
+                <div class="card" onclick="nav('poll')"><span class="card-icon">📊</span><b>Vote</b></div>
+
+                <div class="card" onclick="nav('library')"><span class="card-icon">📚</span><b>Library</b></div>
+                <div class="card" onclick="nav('results')"><span class="card-icon">🥇</span><b>Results</b></div>
+                <div class="card" onclick="nav('idcard')"><span class="card-icon">🆔</span><b>ID Card</b></div>
+            </div>
+        </div>
+
+        <div id="dash-parent" class="page">
+            <h2 style="color:var(--role-parent);">Child's Progress</h2>
+            
+            <div class="form-section" style="border-left-color: var(--role-parent);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <span>Attendance:</span><span class="status-badge bg-green">95% Present</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>Fee Status:</span><span class="status-badge bg-green">PAID</span>
+                </div>
+            </div>
+
+            <div class="grid-menu">
+                <div class="card" onclick="alert('Receipt Downloaded!')"><span class="card-icon">🧾</span><b>Receipts</b></div>
+                <div class="card" onclick="nav('results')"><span class="card-icon">📉</span><b>Marks</b></div>
+                <div class="card" onclick="nav('syllabus')"><span class="card-icon">🛤️</span><b>Progress</b></div>
+                <div class="card" onclick="nav('events')"><span class="card-icon">📅</span><b>Holidays</b></div>
+                <div class="card" onclick="alert('Leave Sent')"><span class="card-icon">📝</span><b>Leave</b></div>
+                <div class="card" onclick="nav('contact')"><span class="card-icon">📞</span><b>Contact</b></div>
+            </div>
+        </div>
+
+        <div id="dash-teacher" class="page">
+            <h2 style="color:var(--role-teacher);">Faculty Panel</h2>
+            <div class="grid-menu">
+                <div class="card" onclick="alert('Marked!')"><span class="card-icon">✅</span><b>Attend</b></div>
+                <div class="card" onclick="nav('view-doubts')"><span class="card-icon">💬</span><b>Doubts</b></div>
+                <div class="card" onclick="nav('tasks')"><span class="card-icon">📝</span><b>Tasks</b></div>
+                <div class="card" onclick="alert('Upload Marks')"><span class="card-icon">📊</span><b>Upload</b></div>
+                <div class="card" onclick="nav('events')"><span class="card-icon">📅</span><b>Events</b></div>
+                <div class="card" onclick="nav('poll')"><span class="card-icon">📊</span><b>Polls</b></div>
+            </div>
+        </div>
+
+        <div id="dash-office" class="page">
+            <h2 style="color:var(--role-office);">Office Admin</h2>
+            <div class="grid-menu">
+                <div class="card" onclick="nav('admin-admission')"><span class="card-icon">📝</span><b>New Adm</b></div>
+                <div class="card" onclick="nav('admin-fees')"><span class="card-icon">💸</span><b>Fees</b></div>
+                <div class="card" onclick="nav('admin-broadcast')"><span class="card-icon">📢</span><b>Notice</b></div>
+                <div class="card" onclick="nav('events')"><span class="card-icon">📅</span><b>Events</b></div>
+                <div class="card" onclick="nav('poll')"><span class="card-icon">📊</span><b>Create Poll</b></div>
+                <div class="card" onclick="alert('Reports Generated')"><span class="card-icon">📄</span><b>Reports</b></div>
+            </div>
+        </div>
+
+        <div id="timer" class="page">
+            <h2>⏱️ Focus Timer</h2>
+            <p style="text-align:center;">Study Session</p>
+            <div class="timer-circle" id="timer-display">00:00</div>
+            <div style="text-align:center;">
+                <button class="btn-submit" style="width:100px; background:var(--success);" onclick="startTimer()">Start</button>
+                <button class="btn-submit" style="width:100px; background:var(--danger);" onclick="stopTimer()">Stop</button>
+            </div>
+        </div>
+
+        <div id="syllabus" class="page">
+            <h2>🛤️ Syllabus Progress</h2>
+            <div class="form-section">
+                <div style="display:flex; justify-content:space-between;"><span>Mathematics</span><b>70%</b></div>
+                <div class="syllabus-bar"><div class="syllabus-fill" style="width:70%"></div></div>
+            </div>
+            <div class="form-section">
+                <div style="display:flex; justify-content:space-between;"><span>Physics</span><b>45%</b></div>
+                <div class="syllabus-bar"><div class="syllabus-fill" style="width:45%; background:orange;"></div></div>
+            </div>
+            <div class="form-section">
+                <div style="display:flex; justify-content:space-between;"><span>Chemistry</span><b>90%</b></div>
+                <div class="syllabus-bar"><div class="syllabus-fill" style="width:90%; background:green;"></div></div>
+            </div>
+        </div>
+
+        <div id="tasks" class="page">
+            <h2>📝 My To-Do List</h2>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <input type="text" id="task-input" placeholder="New Task..." style="margin:0;">
+                <button class="btn-submit" style="width:60px;" onclick="addTask()">Add</button>
+            </div>
+            <div id="task-list">
+                <div class="todo-item"><span>Complete Physics HW</span><span class="todo-del" onclick="this.parentElement.remove()">✖</span></div>
+                <div class="todo-item"><span>Revise Trigonometry</span><span class="todo-del" onclick="this.parentElement.remove()">✖</span></div>
+            </div>
+        </div>
+
+        <div id="poll" class="page">
+            <h2>📊 Active Polls</h2>
+            <div class="form-section">
+                <p><b>Q: Should we arrange an extra class this Sunday?</b></p>
+                <div class="poll-option" onclick="alert('Voted YES!')">Yes, for Math</div>
+                <div class="poll-option" onclick="alert('Voted YES!')">Yes, for Physics</div>
+                <div class="poll-option" onclick="alert('Voted NO!')">No, need rest</div>
+            </div>
+        </div>
+
+        <div id="events" class="page">
+            <h2>📅 Events & Holidays</h2>
+            <div class="event-card">
+                <b>15 Feb 2026</b><br>
+                Scholarship Exam (FAST)
+            </div>
+            <div class="event-card" style="border-left-color:green;">
+                <b>10 Mar 2026</b><br>
+                Holi Holiday
+            </div>
+            <div class="event-card" style="border-left-color:orange;">
+                <b>25 Mar 2026</b><br>
+                Result Declaration
+            </div>
+        </div>
+
+        <div id="admin-admission" class="page">
+            <h2>📝 New Admission</h2>
+            <form onsubmit="submitForm(event)">
+                <div class="form-section">
+                    <span class="form-header">Student Info</span>
+                    <input type="text" placeholder="Full Name" required>
+                    <input type="text" placeholder="Father's Name" required>
+                    <input type="tel" placeholder="Mobile Number" required>
+                    <input type="text" placeholder="Address">
+                </div>
+                <button type="submit" class="btn-submit">Save Record</button>
+            </form>
+        </div>
+
+        <div id="admin-fees" class="page"><h2>💸 Collect Fees</h2><input type="text" placeholder="Student ID"><button class="btn-submit">Collect</button></div>
+        <div id="admin-broadcast" class="page"><h2>📢 Broadcast</h2><textarea placeholder="Message..."></textarea><button class="btn-submit">Send</button></div>
+        <div id="doubt" class="page"><h2>❓ Ask Doubt</h2><textarea placeholder="Question..."></textarea><button class="btn-submit" onclick="alert('Sent!')">Submit</button></div>
+        <div id="live" class="page"><h2>🔴 Live Class</h2><div class="card" style="background:white;"><h3>Maths Class</h3><button class="btn-submit">Join</button></div></div>
+        
+        <div id="library" class="page">
+            <h2>📚 Library</h2>
+            <div class="form-section" style="padding:10px;"><span>HC Verma</span> <b style="color:green; float:right;">Available</b></div>
+            <div class="form-section" style="padding:10px;"><span>RD Sharma</span> <b style="color:red; float:right;">Issued</b></div>
+        </div>
+
+        <div id="results" class="page"><h2>🥇 Results</h2><input type="text" placeholder="Roll No"><button class="btn-submit">Check</button></div>
+        <div id="timetable" class="page"><h2>📅 Schedule</h2><div class="form-section">Mon: Maths<br>Tue: Physics</div></div>
+        <div id="idcard" class="page"><h2>🆔 ID Card</h2><div class="card" style="background:white; padding:20px;"><h3>Student Name</h3><p>FSC-101</p></div></div>
+        <div id="view-doubts" class="page"><h2>💬 Doubts</h2><div class="form-section"><p>Sir, explain Force?</p><button>Reply</button></div></div>
+        <div id="contact" class="page"><h2>📞 Contact</h2><div class="form-section"><p>+91 95708 89666</p></div></div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="goHome()"><span class="nav-icon">🏠</span>Home</div>
+            <div class="nav-item" onclick="doLogout()"><span class="nav-icon">🚪</span>Exit</div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentRole = 'student';
+
+        // Login Logic
+        function selectRole(role, el) {
+            currentRole = role;
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            document.body.setAttribute('data-role', role);
+        }
+
+        function doLogin() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            if(!user) { alert("Enter Name"); return; }
+            if((currentRole === 'office' || currentRole === 'teacher') && pass !== '1234') {
+                alert("Wrong Password! (Hint: 1234)"); return;
+            }
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            document.getElementById('role-display-text').innerText = currentRole.toUpperCase() + " PANEL";
+            goHome();
+        }
+
+        // Navigation
+        function goHome() {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('dash-' + currentRole).classList.add('active');
+            window.scrollTo(0,0);
+        }
+        function nav(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0,0);
+        }
+        function doLogout() { location.reload(); }
+        function submitForm(e) { e.preventDefault(); alert("Saved!"); goHome(); }
+
+        // Timer Logic
+        let timer, seconds = 0, isRunning = false;
+        function startTimer() {
+            if(!isRunning) {
+                isRunning = true;
+                timer = setInterval(() => {
+                    seconds++;
+                    let m = Math.floor(seconds/60).toString().padStart(2,'0');
+                    let s = (seconds%60).toString().padStart(2,'0');
+                    document.getElementById('timer-display').innerText = `${m}:${s}`;
+                }, 1000);
+            }
+        }
+        function stopTimer() { clearInterval(timer); isRunning = false; }
+
+        // To-Do Logic
+        function addTask() {
+            let val = document.getElementById('task-input').value;
+            if(val) {
+                document.getElementById('task-list').innerHTML += 
+                `<div class="todo-item"><span>${val}</span><span class="todo-del" onclick="this.parentElement.remove()">✖</span></div>`;
+                document.getElementById('task-input').value = "";
+            }
+        }
+    </script>
+</body>
+</html>
